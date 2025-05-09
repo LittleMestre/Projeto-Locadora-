@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locadora de Jogos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .menu-container {
+      background-color: rgba(255, 238, 0, 0.9);
+      width: 100%;
+      max-width: 400px;
+      padding: 30px 35px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .menu-container h2 {
+      margin-bottom: 25px;
+      color: #2c3e50;
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    .option-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-cliente {
+      background-color: #000000;
+    }
+    .btn-cliente:hover {
+      background-color: #000000;
+    }
+    .btn-funcionario {
+      background-color: #000000;
+    }
+    .btn-funcionario:hover {
+      background-color: #000000;
+    }
+    .btn-sair {
+      background-color: #e74c3c;
+    }
+    .btn-sair:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-container">
+    <h2>Bem-vindo à Locadora</h2>
+    <button class="option-btn btn-cliente" onclick="window.location.href='/menu-cliente.html'">Acessar como Cliente</button>
+    <button class="option-btn btn-funcionario" onclick="window.location.href='/login.html'">Área do Funcionário</button>
+    <button class="option-btn btn-sair" onclick="sair()">Sair</button>
+  </div>
+
+  <script>
+    function sair() {
+      if (confirm('Deseja realmente sair?')) {
+        localStorage.clear();
+        window.location.href = '/logout.html';
+      }
+    }
+
+    // Se já estiver logado como funcionário, redireciona
+    if (localStorage.getItem('token')) {
+      window.location.href = '/menu-funcionario.html';
+    }
+  </script>
+</body>
+</html>

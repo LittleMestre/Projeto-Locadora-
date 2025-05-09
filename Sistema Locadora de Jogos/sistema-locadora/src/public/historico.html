@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico de Vendas</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.2rem;
+    }
+    
+    .venda-item {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border-left: 4px solid #333;
+    }
+    
+    .venda-info {
+      font-family: 'Courier New', monospace;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    
+    .btn-voltar {
+      display: block;
+      width: 200px;
+      margin: 30px auto 0;
+      padding: 12px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-voltar:hover {
+      background-color: #555;
+    }
+    
+    .sem-vendas {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.2rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Histórico de Vendas</h1>
+    
+    <div id="lista-vendas">
+      <!-- As vendas serão carregadas aqui via JavaScript -->
+    </div>
+    
+    <button class="btn-voltar" onclick="window.location.href='/menu-funcionario.html'">Voltar ao Menu</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Verifica autenticação
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      try {
+        // Busca o histórico de vendas da API
+        const response = await fetch('/api/historico', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar histórico de vendas');
+        }
+        
+        const vendas = await response.json();
+        const listaVendas = document.getElementById('lista-vendas');
+        
+        if (vendas.length === 0) {
+          listaVendas.innerHTML = '<div class="sem-vendas">Nenhuma venda registrada</div>';
+          return;
+        }
+        
+        // Formata cada venda conforme solicitado
+        vendas.forEach(venda => {
+          const vendaDiv = document.createElement('div');
+          vendaDiv.className = 'venda-item';
+          
+          // Formata a data completa conforme o exemplo
+          const dataVenda = new Date(venda.data_venda);
+          const dataFormatada = dataVenda.toString();
+          
+          vendaDiv.innerHTML = `
+            <div class="venda-info">
+ID: ${venda.id} | Código do Jogo: ${venda.codigo_jogo || 'N/A'} | Nome do Jogo: ${venda.nome_jogo || 'N/A'} 
+Quantidade Vendida: ${venda.quantidade_vendida || '0'} | Valor Total: R$ ${venda.valor_total ? venda.valor_total.toFixed(2) : '0.00'} 
+Data da Venda: ${dataFormatada}
+            </div>
+          `;
+          
+          listaVendas.appendChild(vendaDiv);
+        });
+        
+      } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('lista-vendas').innerHTML = `
+          <div class="sem-vendas" style="color: #e74c3c;">${error.message}</div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

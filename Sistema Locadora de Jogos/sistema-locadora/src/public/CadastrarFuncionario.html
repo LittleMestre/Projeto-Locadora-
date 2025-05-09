@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Funcionário</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    .error-message {
+      color: #e74c3c;
+      text-align: center;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .success-message {
+      color: #2ecc71;
+      text-align: center;
+      margin: 10px 0;
+      font-weight: bold;
+      font-size: 18px;
+      display: none;
+    }
+    .cpf-format {
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Cadastrar Funcionário</h2>
+    <form id="cadastroForm">
+      <label for="nome">Nome do funcionário:</label>
+      <input type="text" id="nome" required placeholder="Digite o nome completo">
+      
+      <label for="cpf">CPF do funcionário:</label>
+      <input type="text" id="cpf" class="cpf-format" required placeholder="000.000.000-00" maxlength="14">
+      
+      <label for="dataNascimento">Data de nascimento (AAAA-MM-DD):</label>
+      <input type="date" id="dataNascimento" required>
+      
+      <label for="email">Email do funcionário:</label>
+      <input type="email" id="email" required placeholder="usuario@locadoradoze.com">
+      
+      <label for="senha">Senha do funcionário:</label>
+      <input type="password" id="senha" required placeholder="Mínimo 6 caracteres" minlength="6">
+      
+      <label for="confirmarSenha">Confirmar senha:</label>
+      <input type="password" id="confirmarSenha" required placeholder="Repita a senha">
+      
+      <button type="submit">Cadastrar</button>
+      <button type="button" onclick="window.location.href='/menu-funcionario.html'">Voltar</button>
+    </form>
+    <p id="message" class="error-message"></p>
+    <p id="successMessage" class="success-message">Funcionário cadastrado com sucesso!</p>
+  </div>
+
+  <script>
+    // Validação de CPF e formatação automática
+    document.getElementById('cpf').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      
+      if (value.length > 3) {
+        value = value.replace(/^(\d{3})/, '$1.');
+      }
+      if (value.length > 7) {
+        value = value.replace(/^(\d{3})\.(\d{3})/, '$1.$2.');
+      }
+      if (value.length > 11) {
+        value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})/, '$1.$2.$3-');
+      }
+      
+      e.target.value = value.substring(0, 14);
+    });
+
+    // Verifica autenticação ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+    });
+
+    // Envio do formulário
+    document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Limpa mensagens anteriores
+      document.getElementById('message').textContent = '';
+      document.getElementById('successMessage').style.display = 'none';
+      
+      // Validações
+      const email = document.getElementById('email').value;
+      if (!email.endsWith('@locadoradoze.com')) {
+        document.getElementById('message').textContent = 'O email deve terminar com @locadoradoze.com';
+        return;
+      }
+
+      if (document.getElementById('senha').value !== document.getElementById('confirmarSenha').value) {
+        document.getElementById('message').textContent = 'As senhas não coincidem';
+        return;
+      }
+
+      // Formata CPF para enviar sem máscara
+      const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+
+      const funcionarioData = {
+        nome: document.getElementById('nome').value,
+        cpf: cpf,
+        data_nascimento: document.getElementById('dataNascimento').value,
+        email: email,
+        senha: document.getElementById('senha').value
+      };
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/funcionarios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(funcionarioData)
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao cadastrar funcionário');
+        }
+        
+        // Mostra mensagem de sucesso
+        document.getElementById('successMessage').style.display = 'block';
+        document.getElementById('cadastroForm').reset();
+        
+        // Opcional: Redireciona após 3 segundos
+        setTimeout(() => {
+          window.location.href = '/menu-funcionario.html';
+        }, 3000);
+        
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+      }
+    });
+  </script>
+</body>
+</html>

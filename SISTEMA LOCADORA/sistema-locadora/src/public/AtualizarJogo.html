@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atualizar Jogo</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.2rem;
+    }
+    
+    .jogo-info {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border-left: 4px solid #333;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn:hover {
+      background-color: #555;
+    }
+    
+    .btn-salvar {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .btn-salvar:hover {
+      background-color: #27ae60;
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    
+    .success-message {
+      color: #2ecc71;
+      font-weight: bold;
+      margin: 10px 0;
+      font-size: 1.2rem;
+      display: none;
+    }
+    
+    #lista-jogos {
+      margin-bottom: 30px;
+    }
+    
+    #form-atualizacao {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Atualizar Jogo</h1>
+    
+    <div id="lista-jogos">
+      <h2>Jogos cadastrados:</h2>
+      <div id="jogos-container"></div>
+    </div>
+    
+    <div class="form-group">
+      <label for="codigo-jogo">Digite o código do jogo que deseja atualizar:</label>
+      <input type="number" id="codigo-jogo" min="1">
+      <button class="btn" onclick="carregarJogo()">Carregar</button>
+    </div>
+    
+    <div id="info-jogo" style="display: none;">
+      <h3>Informações atuais do jogo:</h3>
+      <div class="jogo-info" id="info-atual"></div>
+    </div>
+    
+    <form id="form-atualizacao">
+      <div class="form-group">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome">
+      </div>
+      
+      <div class="form-group">
+        <label for="genero">Gênero:</label>
+        <input type="text" id="genero">
+      </div>
+      
+      <div class="form-group">
+        <label for="classificacao">Classificação:</label>
+        <select id="classificacao">
+          <option value="Livre">Livre</option>
+          <option value="10+">10+</option>
+          <option value="12+">12+</option>
+          <option value="16+">16+</option>
+          <option value="18+">18+</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="disponibilidade">Disponibilidade:</label>
+        <select id="disponibilidade">
+          <option value="venda">Venda</option>
+          <option value="aluguel">Aluguel</option>
+          <option value="ambos">Venda e Aluguel</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="preco">Preço (R$):</label>
+        <input type="number" id="preco" step="0.01" min="0">
+      </div>
+      
+      <div class="form-group">
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" min="0">
+      </div>
+      
+      <div class="form-group">
+        <label for="imagem">URL da Imagem (opcional):</label>
+        <input type="text" id="imagem">
+      </div>
+      
+      <button type="submit" class="btn btn-salvar">Salvar Alterações</button>
+    </form>
+    
+    <p id="message" class="error-message"></p>
+    <p id="successMessage" class="success-message">Jogo atualizado com sucesso!</p>
+    
+    <button class="btn" onclick="window.location.href='/menu-funcionario.html'">Voltar ao Menu</button>
+  </div>
+
+  <script>
+    // Carrega a lista de jogos ao abrir a página
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!localStorage.getItem('token')) {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      await carregarTodosJogos();
+    });
+
+    // Carrega todos os jogos para exibir na lista
+    async function carregarTodosJogos() {
+      try {
+        const response = await fetch('/api/jogos');
+        if (!response.ok) throw new Error('Erro ao carregar jogos');
+        
+        const jogos = await response.json();
+        const container = document.getElementById('jogos-container');
+        container.innerHTML = '';
+        
+        if (jogos.length === 0) {
+          container.innerHTML = '<p>Nenhum jogo cadastrado</p>';
+          return;
+        }
+        
+        jogos.forEach(jogo => {
+          const jogoDiv = document.createElement('div');
+          jogoDiv.className = 'jogo-info';
+          jogoDiv.innerHTML = `
+            Código: ${jogo.id} | Nome: ${jogo.nome} | Gênero: ${jogo.genero} 
+            | Classificação: ${jogo.classificacao} | Disponibilidade: ${jogo.disponibilidade} 
+            | Preço: R$${jogo.preco.toFixed(2)} | Quantidade: ${jogo.quantidade}
+          `;
+          container.appendChild(jogoDiv);
+        });
+        
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+      }
+    }
+
+    // Carrega os dados de um jogo específico para atualização
+    async function carregarJogo() {
+      const codigo = document.getElementById('codigo-jogo').value;
+      if (!codigo) {
+        document.getElementById('message').textContent = 'Digite um código válido';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/jogos/${codigo}`);
+        if (!response.ok) throw new Error('Jogo não encontrado');
+        
+        const jogo = await response.json();
+        
+        // Exibe as informações atuais
+        const infoAtual = document.getElementById('info-atual');
+        infoAtual.innerHTML = `
+          Nome: ${jogo.nome}
+          Gênero: ${jogo.genero}
+          Classificação: ${jogo.classificacao}
+          Disponibilidade: ${jogo.disponibilidade}
+          Preço: R$${jogo.preco.toFixed(2)}
+          Quantidade: ${jogo.quantidade}
+        `;
+        
+        document.getElementById('info-jogo').style.display = 'block';
+        
+        // Preenche o formulário com os valores atuais
+        document.getElementById('nome').value = jogo.nome;
+        document.getElementById('genero').value = jogo.genero;
+        document.getElementById('classificacao').value = jogo.classificacao;
+        document.getElementById('disponibilidade').value = jogo.disponibilidade;
+        document.getElementById('preco').value = jogo.preco;
+        document.getElementById('quantidade').value = jogo.quantidade;
+        document.getElementById('imagem').value = jogo.imagem || '';
+        
+        document.getElementById('form-atualizacao').style.display = 'block';
+        document.getElementById('message').textContent = '';
+        
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+        document.getElementById('info-jogo').style.display = 'none';
+        document.getElementById('form-atualizacao').style.display = 'none';
+      }
+    }
+
+    // Envia as atualizações para o servidor
+    document.getElementById('form-atualizacao').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const codigo = document.getElementById('codigo-jogo').value;
+      const jogoData = {
+        nome: document.getElementById('nome').value,
+        genero: document.getElementById('genero').value,
+        classificacao: document.getElementById('classificacao').value,
+        disponibilidade: document.getElementById('disponibilidade').value,
+        preco: parseFloat(document.getElementById('preco').value),
+        quantidade: parseInt(document.getElementById('quantidade').value),
+        imagem: document.getElementById('imagem').value || null
+      };
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/jogos/${codigo}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(jogoData)
+        });
+        
+        if (!response.ok) throw new Error('Erro ao atualizar jogo');
+        
+        // Mostra mensagem de sucesso
+        document.getElementById('successMessage').style.display = 'block';
+        document.getElementById('message').textContent = '';
+        
+        // Atualiza a lista de jogos
+        await carregarTodosJogos();
+        
+        // Opcional: Redireciona após 3 segundos
+        setTimeout(() => {
+          window.location.href = '/catalogo.html';
+        }, 3000);
+        
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+        document.getElementById('successMessage').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

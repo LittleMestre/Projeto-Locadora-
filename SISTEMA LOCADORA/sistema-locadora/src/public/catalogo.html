@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Jogos - Funcionário</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.2rem;
+    }
+    
+    .catalogo-header {
+      display: grid;
+      grid-template-columns: 80px 2fr 1fr 100px 100px 1fr;
+      font-weight: bold;
+      padding: 15px 10px;
+      background-color: #333;
+      color: #ffee00;
+      border-radius: 5px 5px 0 0;
+    }
+    
+    .jogo-item {
+      display: grid;
+      grid-template-columns: 80px 2fr 1fr 100px 100px 1fr;
+      padding: 12px 10px;
+      border-bottom: 1px solid #ddd;
+      background-color: rgba(255, 255, 255, 0.8);
+      transition: background-color 0.3s;
+    }
+    
+    .jogo-item:hover {
+      background-color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .jogo-item div {
+      display: flex;
+      align-items: center;
+    }
+    
+    .btn-voltar {
+      display: block;
+      width: 200px;
+      margin: 30px auto 0;
+      padding: 12px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-voltar:hover {
+      background-color: #555;
+    }
+    
+    .disponivel {
+      color: #2ecc71;
+      font-weight: bold;
+    }
+    
+    .indisponivel {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Catálogo de Produtos</h1>
+    
+    <div class="catalogo-header">
+      <div>Código</div>
+      <div>Jogo</div>
+      <div>Gênero</div>
+      <div>Preço</div>
+      <div>Quantidade</div>
+      <div>Disponibilidade</div>
+    </div>
+    
+    <div id="lista-jogos"></div>
+    
+    <a href="/menu-funcionario.html" class="btn-voltar">Voltar ao Menu</a>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Verifica autenticação
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      try {
+        // Busca os jogos da API
+        const response = await fetch('/api/jogos', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar catálogo');
+        }
+        
+        const jogos = await response.json();
+        const listaJogos = document.getElementById('lista-jogos');
+        
+        if (jogos.length === 0) {
+          listaJogos.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Nenhum jogo cadastrado</div>';
+          return;
+        }
+        
+        // Popula a lista de jogos
+        jogos.forEach(jogo => {
+          const jogoItem = document.createElement('div');
+          jogoItem.className = 'jogo-item';
+          
+          jogoItem.innerHTML = `
+            <div>${jogo.id}</div>
+            <div>${jogo.nome}</div>
+            <div>${jogo.genero}</div>
+            <div>R$ ${jogo.preco.toFixed(2)}</div>
+            <div>${jogo.quantidade}</div>
+            <div class="${jogo.quantidade > 0 ? 'disponivel' : 'indisponivel'}">
+              ${jogo.quantidade > 0 ? 'Disponível' : 'Indisponível'}
+            </div>
+          `;
+          
+          listaJogos.appendChild(jogoItem);
+        });
+        
+      } catch (error) {
+        console.error('Erro:', error);
+        alert(error.message);
+      }
+    });
+  </script>
+</body>
+</html>

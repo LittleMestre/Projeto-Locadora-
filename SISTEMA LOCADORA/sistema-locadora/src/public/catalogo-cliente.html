@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Jogos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.2rem;
+    }
+    
+    .venda-item {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border-left: 4px solid #333;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin: 5px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn:hover {
+      background-color: #555;
+    }
+    
+    .btn-adicionar {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .btn-adicionar:hover {
+      background-color: #27ae60;
+    }
+    
+    .btn-voltar {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .btn-voltar:hover {
+      background-color: #c0392b;
+    }
+    
+    .btn-carrinho {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-carrinho:hover {
+      background-color: #2980b9;
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    
+    .success-message {
+      color: #2ecc71;
+      font-weight: bold;
+      margin: 10px 0;
+      display: none;
+    }
+    
+    .acoes {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .quantidade-input {
+      width: 60px;
+      padding: 5px;
+      margin-right: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Catálogo de Produtos</h1>
+    
+    <div id="lista-jogos"></div>
+    
+    <div class="acoes">
+      <button class="btn btn-carrinho" onclick="verCarrinho()">Ver Carrinho</button>
+      <button class="btn btn-voltar" onclick="window.location.href='/menu-cliente.html'">Voltar</button>
+    </div>
+    
+    <p id="message" class="error-message"></p>
+    <p id="successMessage" class="success-message"></p>
+  </div>
+
+  <script>
+    // Carrega a lista de jogos ao abrir a página
+    document.addEventListener('DOMContentLoaded', async () => { 
+      await carregarJogos();
+      // Inicializa o carrinho no localStorage se não existir
+      if (!localStorage.getItem('carrinho')) {
+        localStorage.setItem('carrinho', JSON.stringify([]));
+      }
+    });
+
+    // Carrega todos os jogos para exibir na lista
+    async function carregarJogos() {
+      try {
+        const response = await fetch('/api/jogos');
+        if (!response.ok) throw new Error('Erro ao carregar jogos');
+        
+        const jogos = await response.json();
+        const container = document.getElementById('lista-jogos');
+        container.innerHTML = '';
+        
+        if (jogos.length === 0) {
+          container.innerHTML = '<div class="venda-item">Nenhum jogo disponível</div>';
+          return;
+        }
+        
+        jogos.forEach(jogo => {
+          const jogoDiv = document.createElement('div');
+          jogoDiv.className = 'venda-item';
+          
+          jogoDiv.innerHTML = `
+            <strong>Código: ${jogo.id}</strong> | <strong>Jogo:</strong> ${jogo.nome} 
+            | <strong>Gênero:</strong> ${jogo.genero} | <strong>Preço:</strong> R$ ${Number(jogo.preco).toFixed(2)}
+            | <strong>Quantidade:</strong> ${jogo.quantidade} | <strong>Disponibilidade:</strong> ${jogo.quantidade > 0 ? 'Disponível' : 'Esgotado'}
+            <div style="margin-top: 10px;">
+              <input type="number" id="quantidade-${jogo.id}" class="quantidade-input" min="1" max="${jogo.quantidade}" value="1">
+              <button class="btn btn-adicionar" onclick="adicionarAoCarrinho(${jogo.id}, '${jogo.nome.replace(/'/g, "\\'")}', ${jogo.preco})">
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          `;
+          
+          container.appendChild(jogoDiv);
+        });
+        
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+      }
+    }
+
+    // Adiciona um jogo ao carrinho
+    async function adicionarAoCarrinho(idJogo, nomeJogo, preco) {
+      const inputQuantidade = document.getElementById(`quantidade-${idJogo}`);
+      const quantidade = parseInt(inputQuantidade.value);
+      
+      if (isNaN(quantidade)) {
+        document.getElementById('message').textContent = 'Digite uma quantidade válida';
+        return;
+      }
+      
+      try {
+        // Obtém o carrinho atual do localStorage
+        const carrinho = JSON.parse(localStorage.getItem('carrinho'));
+        
+        // Verifica se o jogo já está no carrinho
+        const itemExistente = carrinho.find(item => item.id === idJogo);
+        
+        if (itemExistente) {
+          // Atualiza a quantidade se o item já existir
+          itemExistente.quantidade += quantidade;
+        } else {
+          // Adiciona novo item ao carrinho
+          carrinho.push({
+            id: idJogo,
+            nome: nomeJogo,
+            preco: preco,
+            quantidade: quantidade
+          });
+        }
+        
+        // Salva o carrinho atualizado no localStorage
+        localStorage.setItem('carrinho', JSON.stringify(carrinho));
+        
+        // Mostra mensagem de sucesso
+        const successMessage = document.getElementById('successMessage');
+        successMessage.textContent = `${quantidade} unidade(s) de "${nomeJogo}" adicionada(s) ao carrinho.`;
+        successMessage.style.display = 'block';
+        document.getElementById('message').textContent = '';
+        
+        // Limpa mensagem após 5 segundos
+        setTimeout(() => {
+          successMessage.style.display = 'none';
+        }, 5000);
+        
+      } catch (error) {
+        document.getElementById('message').textContent = 'Erro ao adicionar ao carrinho: ' + error.message;
+        document.getElementById('successMessage').style.display = 'none';
+      }
+    }
+
+    // Função para ver o carrinho
+    function verCarrinho() {
+      const carrinho = JSON.parse(localStorage.getItem('carrinho'));
+      
+      if (carrinho && carrinho.length > 0) {
+        // Redireciona para a página do carrinho se houver itens
+        window.location.href = '/carrinho.html';
+      } else {
+        // Mostra mensagem se o carrinho estiver vazio
+        document.getElementById('message').textContent = 'Carrinho vazio! Adicione algo para acessar.';
+      }
+    }
+  </script>
+</body>
+</html>

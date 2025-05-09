@@ -7,39 +7,93 @@
   <link rel="stylesheet" href="/css/style.css">
   <style>
     body {
+      font-family: Arial, sans-serif;
       background-image: url('https://m.media-amazon.com/images/I/8149ZxkL20L._AC_UF1000,1000_QL80_.jpg');
       background-size: cover;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
     }
+    
     .menu-container {
-      background-color: rgba(255, 238, 0, 0.9);
+      background-color: rgba(255, 238, 0, 0.92);
+      padding: 30px;
+      border-radius: 10px;
+      width: 100%;
       max-width: 500px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
     }
+    
+    h2 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    
     .welcome-message {
       text-align: center;
-      font-size: 24px;
+      font-size: 20px;
       margin: 20px 0;
       color: #006400;
       font-weight: bold;
+      display: none;
     }
+    
     .menu-options {
-      display: none; /* Inicialmente escondido */
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .menu-btn {
+      padding: 12px;
+      background-color: #333;
+      color: #ffee00;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 100%;
+    }
+    
+    .menu-btn:hover {
+      background-color: #555;
+    }
+    
+    .btn-logout {
+      background-color: #e74c3c;
+      color: white;
+      margin-top: 20px;
+    }
+    
+    .btn-logout:hover {
+      background-color: #c0392b;
+    }
+    
+    .username {
+      font-weight: bold;
+      color: #2c3e50;
     }
   </style>
 </head>
 <body>
-  <div class="form-container menu-container">
-    <h2>Menu Funcionário <span id="userName"></span></h2>
+  <div class="menu-container">
+    <h2>Menu do Funcionário <span id="userName" class="username"></span></h2>
     
     <div id="welcomeMessage" class="welcome-message"></div>
     
     <div id="menuOptions" class="menu-options">
-      <button onclick="navigate('/cadastrar-jogo.html')">Cadastrar Jogos</button>
-      <button onclick="navigate('/catalogo.html')">Visualizar Catálogo</button>
-      <button onclick="navigate('/cadastrar-funcionario.html')">Cadastrar Funcionário</button>
-      <button onclick="navigate('/historico-vendas.html')">Histórico de Vendas</button>
-      <button onclick="navigate('/atualizar-jogo.html')">Atualizar Jogos</button>
-      <button onclick="navigate('/excluir-jogo.html')">Excluir Jogos</button>
-      <button class="btn-logout" onclick="logout()">Sair</button>
+      <button class="menu-btn" onclick="navigate('/cadastrar-jogo.html')">1. Cadastrar Jogos</button>
+      <button class="menu-btn" onclick="navigate('/catalogo.html')">2. Visualizar Catálogo</button>
+      <button class="menu-btn" onclick="navigate('/cadastrar-funcionario.html')">3. Cadastrar Funcionário</button>
+      <button class="menu-btn" onclick="navigate('/historico-vendas.html')">4. Histórico de Vendas</button>
+      <button class="menu-btn" onclick="navigate('/atualizar-jogo.html')">5. Atualizar Jogos</button>
+      <button class="menu-btn" onclick="navigate('/excluir-jogo.html')">6. Excluir Jogos</button>
+      <button class="menu-btn btn-logout" onclick="logout()">7. Sair</button>
     </div>
   </div>
 
@@ -58,26 +112,37 @@
         document.getElementById('userName').textContent = userName;
       }
 
-      // Verifica se é admin
-      try {
-        const response = await fetch('/api/verificar-admin', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) window.location.href = '/menu-cliente.html';
-      } catch (error) {
-        console.error('Erro:', error);
-        window.location.href = '/login.html';
+      // Verifica se deve mostrar mensagem de boas-vindas
+      const showWelcome = sessionStorage.getItem('showWelcome');
+      
+      if (showWelcome === 'true') {
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        welcomeMessage.textContent = 'Login bem-sucedido!';
+        welcomeMessage.style.display = 'block';
+        
+        setTimeout(() => {
+          welcomeMessage.style.display = 'none';
+          document.getElementById('menuOptions').style.display = 'flex';
+        }, 3000);
+        
+        sessionStorage.removeItem('showWelcome');
+      } else {
+        // Mostra o menu diretamente se não for um login recente
+        document.getElementById('menuOptions').style.display = 'flex';
       }
 
-      // Mostra mensagem de boas-vindas
-      const welcomeMessage = document.getElementById('welcomeMessage');
-      welcomeMessage.textContent = 'Login bem-sucedido!';
-      
-      // Após 3 segundos, esconde a mensagem e mostra o menu
-      setTimeout(() => {
-        welcomeMessage.style.display = 'none';
-        document.getElementById('menuOptions').style.display = 'block';
-      }, 3000);
+      // Verificação de tipo de usuário
+      try {
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        const userEmail = tokenData.email;
+        
+        if (!userEmail.endsWith('@locadoradoze.com')) {
+          window.location.href = '/menu-cliente.html';
+        }
+      } catch (error) {
+        console.error('Erro ao verificar token:', error);
+        window.location.href = '/login.html';
+      }
     });
 
     function navigate(path) {
@@ -88,7 +153,7 @@
       if (confirm('Deseja realmente sair?')) {
         localStorage.removeItem('token');
         localStorage.removeItem('userName');
-        window.location.href = '/login.html';
+        window.location.href = '/index.html';
       }
     }
   </script>

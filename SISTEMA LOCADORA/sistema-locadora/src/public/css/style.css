@@ -68,6 +68,11 @@ button:hover {
   background-color: #c0392b;
 }
 
+.welcome-message {
+  display: none; /* Inicia oculta */
+  /* mantém seus outros estilos */
+}
+
 .error-message {
   color: #e74c3c;
   margin-top: 10px;

@@ -66,36 +66,48 @@
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-      const errorElement = document.getElementById('loginError');
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const email = document.getElementById('email').value;
+  const senha = document.getElementById('senha').value;
+  const errorElement = document.getElementById('loginError');
 
-      try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, senha })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) throw new Error(data.error || 'Erro no login');
-
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userName', data.nome);
-        
-        if (email.endsWith('@locadoradoze.com')) {
-          window.location.href = '/menu-funcionario.html';
-        } else {
-          window.location.href = '/menu-cliente.html';
-        }
-      } catch (error) {
-        errorElement.textContent = error.message;
-      }
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha })
     });
-  </script>
+
+    const data = await response.json();
+    
+    if (!response.ok) throw new Error(data.error || 'Erro no login');
+
+    // Armazena os dados do usuário
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userName', data.nome);
+    
+    // Marca para mostrar mensagem de boas-vindas
+    sessionStorage.setItem('showWelcome', 'true');
+
+    // Redireciona conforme o tipo de usuário
+    if (email.endsWith('@locadoradoze.com')) {
+      window.location.href = '/menu-funcionario.html';
+    } else {
+      window.location.href = '/menu-cliente.html';
+    }
+    
+  } catch (error) {
+    errorElement.textContent = error.message;
+    errorElement.style.display = 'block';
+    
+    // Esconde o erro após 5 segundos
+    setTimeout(() => {
+      errorElement.style.display = 'none';
+    }, 5000);
+  }
+});
+</script>
 </body>
 </html>

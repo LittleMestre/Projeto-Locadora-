@@ -57,6 +57,10 @@ app.get('/funcionario', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'funcionario.html'));
 });
 
+app.get('/menu-funcionario.html', autenticarToken, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'menu-funcionario.html'));
+});
+
 // API - Autenticação
 app.post('/api/login', async (req, res) => {
   const { email, senha } = req.body;
@@ -340,16 +344,17 @@ app.post('/api/vendas', autenticarToken, async (req, res) => {
     }
 
     await connection.commit();
-    carrinho = [];
-    res.json({ message: 'Compra finalizada com sucesso!' });
+    carrinho = []; // Limpa o carrinho após finalizar a compra
+    res.status(201).json({ message: 'Venda realizada com sucesso!' });
   } catch (error) {
     await connection.rollback();
-    console.error('Erro ao finalizar compra:', error);
-    res.status(500).json({ error: 'Erro ao finalizar compra' });
+    console.error('Erro ao processar venda:', error);
+    res.status(500).json({ error: 'Erro ao processar venda' });
   } finally {
     connection.release();
   }
 });
+
 
 app.get('/api/historico', autenticarToken, async (req, res) => {
   try {

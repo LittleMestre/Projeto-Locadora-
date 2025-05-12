@@ -76,7 +76,7 @@
     <h2>Cadastrar Jogo</h2>
     <form id="cadastroJogoForm">
       <label for="nome">Nome do jogo:</label>
-      <input type="text" id="nome" required placeholder="Ex: The Legend of Zelda">
+      <input type="text" id="nome" required placeholder="Ex: Fortnite">
       
       <label for="genero">Gênero do jogo:</label>
       <input type="text" id="genero" required placeholder="Ex: Aventura, Ação">
@@ -108,7 +108,8 @@
       <label for="imagem">URL da Imagem (opcional):</label>
       <input type="text" id="imagem" placeholder="Ex: https://exemplo.com/imagem.jpg">
       
-      <button type="submit">Cadastrar Jogo</button>
+      <button type="submit">Cadastrar Jogo</button><br><br>
+      <button type="button" onclick="confirmarSaida()" style="background-color: #d9534f;">Sair</button>
     </form>
     <p id="message" class="error-message"></p>
     <p id="successMessage" class="success-message">Jogo cadastrado com sucesso!</p>
@@ -122,11 +123,39 @@
         window.location.href = '/login.html';
         return;
       }
+      
+      // Validação de campos obrigatórios ao tentar enviar o formulário
+      document.getElementById('cadastroJogoForm').addEventListener('submit', (e) => {
+        const requiredFields = [
+          'nome', 'genero', 'classificacao', 
+          'disponibilidade', 'preco', 'quantidade'
+        ];
+        
+        let isValid = true;
+        
+        requiredFields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (!field.value.trim()) {
+            field.style.borderColor = 'red';
+            isValid = false;
+          } else {
+            field.style.borderColor = '#ddd';
+          }
+        });
+        
+        if (!isValid) {
+          e.preventDefault();
+          document.getElementById('message').textContent = 'Por favor, preencha todos os campos obrigatórios.';
+          return;
+        }
+        
+        // Se tudo estiver válido, envia o formulário
+        e.preventDefault();
+        submitForm();
+      });
     });
 
-    document.getElementById('cadastroJogoForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
+    async function submitForm() {
       const jogoData = {
         nome: document.getElementById('nome').value,
         genero: document.getElementById('genero').value,
@@ -168,7 +197,29 @@
         document.getElementById('message').textContent = error.message;
         document.getElementById('successMessage').style.display = 'none';
       }
-    });
+    }
+    
+    function confirmarSaida() {
+      const form = document.getElementById('cadastroJogoForm');
+      const inputs = form.querySelectorAll('input, select');
+      let hasData = false;
+      
+      // Verifica se algum campo foi preenchido
+      inputs.forEach(input => {
+        if (input.value.trim() !== '' && input.id !== 'imagem') {
+          hasData = true;
+        }
+      });
+      
+      if (hasData) {
+        const confirmar = confirm('Tem certeza que deseja sair? Os dados não salvos serão perdidos.');
+        if (confirmar) {
+          window.history.back(); // Simplesmente volta para a página anterior
+        }
+      } else {
+        window.history.back(); // Simplesmente volta para a página anterior
+      }
+    }
   </script>
 </body>
 </html>

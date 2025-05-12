@@ -215,7 +215,7 @@
           jogoDiv.innerHTML = `
             Código: ${jogo.id} | Nome: ${jogo.nome} | Gênero: ${jogo.genero} 
             | Classificação: ${jogo.classificacao} | Disponibilidade: ${jogo.disponibilidade} 
-            | Preço: R$${jogo.preco.toFixed(2)} | Quantidade: ${jogo.quantidade}
+            | Preço: R$${Number(jogo.preco).toFixed(2)} | Quantidade: ${jogo.quantidade}
           `;
           container.appendChild(jogoDiv);
         });

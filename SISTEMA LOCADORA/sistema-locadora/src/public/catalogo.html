@@ -38,7 +38,7 @@
       font-weight: bold;
       padding: 15px 10px;
       background-color: #333;
-      color: #ffee00;
+      color: #ffffff;
       border-radius: 5px 5px 0 0;
     }
     
@@ -106,7 +106,7 @@
     
     <div id="lista-jogos"></div>
     
-    <a href="/menu-funcionario.html" class="btn-voltar">Voltar ao Menu</a>
+    <a href="/menu-funcionario.html" class="btn-voltar" style="color: #ddd;">Voltar ao Menu</a>
   </div>
 
   <script>
@@ -147,7 +147,7 @@
             <div>${jogo.id}</div>
             <div>${jogo.nome}</div>
             <div>${jogo.genero}</div>
-            <div>R$ ${jogo.preco.toFixed(2)}</div>
+            <div>R$ ${Number(jogo.preco).toFixed(2)}</div>
             <div>${jogo.quantidade}</div>
             <div class="${jogo.quantidade > 0 ? 'disponivel' : 'indisponivel'}">
               ${jogo.quantidade > 0 ? 'Disponível' : 'Indisponível'}

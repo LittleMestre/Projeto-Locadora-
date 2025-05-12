@@ -126,7 +126,7 @@
           vendaDiv.innerHTML = `
             <div class="venda-info">
 ID: ${venda.id} | Código do Jogo: ${venda.codigo_jogo || 'N/A'} | Nome do Jogo: ${venda.nome_jogo || 'N/A'} 
-Quantidade Vendida: ${venda.quantidade_vendida || '0'} | Valor Total: R$ ${venda.valor_total ? venda.valor_total.toFixed(2) : '0.00'} 
+Quantidade Vendida: ${venda.quantidade_vendida || '0'} | Valor Total: R$ ${venda.valor_total ? Number(venda.valor_total).toFixed(2) : '0.00'} 
 Data da Venda: ${dataFormatada}
             </div>
           `;
